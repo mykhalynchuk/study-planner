@@ -1,0 +1,221 @@
+$primary-color: #3b82f6;
+$success-color: #10b981;
+$danger-color: #ef4444;
+$bg-color: #f9fafb;
+$card-bg: #ffffff;
+$text-main: #1f2937;
+$text-muted: #6b7280;
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background-color: $bg-color;
+  color: $text-main;
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+
+  &__title {
+    font-size: 2.5rem;
+    color: $primary-color;
+    margin: 0 0 0.5rem;
+  }
+  &__subtitle {
+    color: $text-muted;
+    margin: 0;
+  }
+}
+
+.task-form {
+  background: $card-bg;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+
+  &__title {
+    margin-top: 0;
+    font-size: 1.25rem;
+  }
+
+  &__field {
+    margin-bottom: 1rem;
+  }
+
+  &__row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    > * {
+      flex: 1;
+    }
+  }
+
+  &__input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    box-sizing: border-box;
+
+    &--textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+  }
+
+  &__error {
+    color: $danger-color;
+    font-size: 0.875rem;
+    display: block;
+    margin-top: 0.25rem;
+  }
+
+  &__button {
+    background-color: $primary-color;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+
+    &:hover { opacity: 0.9; }
+  }
+}
+
+.stats {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  &__item {
+    background: $card-bg;
+    padding: 1rem;
+    border-radius: 6px;
+    flex: 1;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+
+    &--completed strong { color: $success-color; }
+    &--uncompleted strong { color: $primary-color; }
+  }
+}
+
+.filters {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+
+  &__btn {
+    background: transparent;
+    border: 1px solid #d1d5db;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+
+    &--active {
+      background: $primary-color;
+      color: white;
+      border-color: $primary-color;
+    }
+  }
+}
+
+.task-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  &__empty {
+    text-align: center;
+    padding: 3rem;
+    background: $card-bg;
+    border-radius: 8px;
+    color: $text-muted;
+  }
+}
+
+.task-item {
+  background: $card-bg;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  transition: opacity 0.3s;
+
+  &--completed {
+    opacity: 0.6;
+    background: #f3f4f6;
+    .task-item__title { text-decoration: line-through; }
+  }
+
+  &__content { flex: 1; }
+
+  &__title {
+    margin: 0 0 0.5rem;
+    font-size: 1.125rem;
+  }
+
+  &__desc {
+    margin: 0 0 1rem;
+    color: $text-muted;
+  }
+
+  &__meta {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  &__tag {
+    background: #e5e7eb;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+
+  &__priority {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: white;
+
+    &--low { background: #9ca3af; }
+    &--medium { background: #f59e0b; }
+    &--high { background: $danger-color; }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  &__btn {
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    color: white;
+
+    &--done { background: $success-color; }
+    &--undo { background: #6b7280; }
+    &--delete { background: $danger-color; }
+  }
+}
