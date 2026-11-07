@@ -30,6 +30,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // @ts-ignore
     const deleteTimeouts = useRef<Record<number, NodeJS.Timeout>>({});
+    // @ts-ignore
+    const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         try {
@@ -47,9 +49,16 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, [tasks]);
 
     const showToast = (message: string, type: ToastState['type'] = 'info', undoId?: number) => {
+        if (toastTimeoutRef.current) {
+            clearTimeout(toastTimeoutRef.current);
+        }
+
         setToast({ message, type, visible: true, undoId });
+
         if (undoId === undefined) {
-            setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 4000);
+            toastTimeoutRef.current = setTimeout(() => {
+                setToast(prev => ({ ...prev, visible: false }));
+            }, 4000);
         }
     };
 
@@ -65,7 +74,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const clearCompleted = () => dispatch({ type: 'clearCompleted' });
     const resetTasks = () => dispatch({ type: 'reset' });
 
-    // Оновлений Request Delete
     const requestDelete = (id: number) => {
         dispatch({ type: 'requestDelete', payload: id });
         showToast('Завдання буде видалено через 5 сек.', 'warning', id);
@@ -73,7 +81,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         deleteTimeouts.current[id] = setTimeout(() => {
             dispatch({ type: 'confirmDelete', payload: id });
             delete deleteTimeouts.current[id];
-            // Ховаємо тост, якщо він належав цьому вилученому завданню
             setToast(prev => prev.undoId === id ? { ...prev, visible: false, undoId: undefined } : prev);
         }, 5000);
     };
