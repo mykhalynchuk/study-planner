@@ -11,7 +11,8 @@ export const Toast: React.FC = () => {
             <span className="toast__message">{toast.message}</span>
 
             {toast.undoId !== undefined && (
-                <>
+                <div className="toast__undo-container">
+                    <span className="toast__timer">{toast.timeLeft}с</span>
                     <button
                         className="toast__btn"
                         onClick={() => undoDelete(toast.undoId!)}
@@ -21,7 +22,7 @@ export const Toast: React.FC = () => {
                     <div className="toast__progress">
                         <div className="toast__progress-fill"></div>
                     </div>
-                </>
+                </div>
             )}
         </div>
     );

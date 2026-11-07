@@ -1,20 +1,20 @@
-import type {Task} from '../types/task';
+import type { Task } from '../types/task';
 
 export const initialTasks: Task[] = [
     {
         id: 1,
-        title: 'React Components',
-        description: 'Опрацювати базові принципи компонентів React',
+        title: 'Вивчити React Hooks',
+        description: 'Розібратися з useState, useEffect та Context API',
         completed: false,
         priority: 'high',
-        category: 'React',
+        category: 'Навчання'
     },
     {
         id: 2,
-        title: 'TypeScript Exercises',
-        description: 'Виконати практичні вправи',
+        title: 'Зробити Лабораторну №9',
+        description: 'Додати Reducer та Undoable Delete',
         completed: true,
         priority: 'medium',
-        category: 'TypeScript',
-    },
+        category: 'Університет'
+    }
 ];

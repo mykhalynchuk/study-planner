@@ -9,6 +9,7 @@ interface ToastState {
     type: 'success' | 'error' | 'warning' | 'info';
     visible: boolean;
     undoId?: number;
+    timeLeft?: number;
 }
 
 interface TaskContextProps {
@@ -31,6 +32,8 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // @ts-ignore
     const deleteTimeouts = useRef<Record<number, NodeJS.Timeout>>({});
     // @ts-ignore
+    const countdownIntervals = useRef<Record<number, NodeJS.Timeout>>({});
+    // @ts-ignore
     const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
@@ -41,19 +44,15 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, []);
 
     useEffect(() => {
-        if (tasks.length > 0 || localStorage.getItem('study_tasks')) {
-            localStorage.setItem('study_tasks', JSON.stringify(tasks));
-        }
+        localStorage.setItem('study_tasks', JSON.stringify(tasks));
         const activeCount = tasks.filter(t => !t.completed && !t.pendingDelete).length;
         document.title = `Study Planner — ${activeCount} active tasks`;
     }, [tasks]);
 
-    const showToast = (message: string, type: ToastState['type'] = 'info', undoId?: number) => {
-        if (toastTimeoutRef.current) {
-            clearTimeout(toastTimeoutRef.current);
-        }
+    const showToast = (message: string, type: ToastState['type'] = 'info', undoId?: number, initialTimeLeft?: number) => {
+        if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
 
-        setToast({ message, type, visible: true, undoId });
+        setToast({ message, type, visible: true, undoId, timeLeft: initialTimeLeft });
 
         if (undoId === undefined) {
             toastTimeoutRef.current = setTimeout(() => {
@@ -63,7 +62,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const addTask = (task: Omit<Task, 'id' | 'completed' | 'pendingDelete'>) => {
-        dispatch({ type: 'add', payload: task }); showToast('Завдання успішно додано!', 'success');
+        dispatch({ type: 'add', payload: task }); showToast('Завдання додано!', 'success');
     };
 
     const updateTask = (task: Task) => {
@@ -72,11 +71,22 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const toggleTask = (id: number) => dispatch({ type: 'toggle', payload: id });
     const clearCompleted = () => dispatch({ type: 'clearCompleted' });
-    const resetTasks = () => dispatch({ type: 'reset' });
+
+    const resetTasks = () => {
+        dispatch({ type: 'reset' });
+        showToast('Дані скинуто до початкових', 'success');
+    };
 
     const requestDelete = (id: number) => {
         dispatch({ type: 'requestDelete', payload: id });
-        showToast('Завдання буде видалено через 5 сек.', 'warning', id);
+        showToast('Завдання буде видалено...', 'warning', id, 5); // Передаємо 5 секунд
+
+        let timeRemaining = 5;
+        countdownIntervals.current[id] = setInterval(() => {
+            timeRemaining -= 1;
+            setToast(prev => prev.undoId === id ? { ...prev, timeLeft: timeRemaining } : prev);
+            if (timeRemaining <= 0) clearInterval(countdownIntervals.current[id]);
+        }, 1000);
 
         deleteTimeouts.current[id] = setTimeout(() => {
             dispatch({ type: 'confirmDelete', payload: id });
@@ -89,6 +99,10 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (deleteTimeouts.current[id]) {
             clearTimeout(deleteTimeouts.current[id]);
             delete deleteTimeouts.current[id];
+        }
+        if (countdownIntervals.current[id]) {
+            clearInterval(countdownIntervals.current[id]);
+            delete countdownIntervals.current[id];
         }
         dispatch({ type: 'undoDelete', payload: id });
         showToast('Видалення скасовано.', 'info');
