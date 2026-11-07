@@ -12,9 +12,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onAddTask }) => {
     const [priority, setPriority] = useState<Priority>('medium');
     const [error, setError] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-
         if (!title.trim()) {
             setError('Назва завдання є обов\'язковою!');
             return;
@@ -27,7 +26,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onAddTask }) => {
             priority,
         });
 
-        // Очищення форми
         setTitle('');
         setDescription('');
         setCategory('');

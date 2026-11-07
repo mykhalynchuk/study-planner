@@ -12,33 +12,29 @@ function App() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [filter, setFilter] = useState<FilterType>('all');
 
-  // Додавання завдання (immutable)
   const handleAddTask = (newTaskData: Omit<Task, 'id' | 'completed'>) => {
     const newTask: Task = {
       ...newTaskData,
-      id: Date.now(), // Проста генерація унікального ID
+      id: Date.now(),
       completed: false,
     };
     setTasks([...tasks, newTask]);
   };
 
-  // Зміна статусу завдання (immutable)
   const handleToggleStatus = (id: number) => {
     setTasks(tasks.map(task =>
         task.id === id ? { ...task, completed: !task.completed } : task
     ));
   };
 
-  // Видалення завдання (immutable)
   const handleDelete = (id: number) => {
     setTasks(tasks.filter(task => task.id !== id));
   };
 
-  // Фільтрація (не змінюємо оригінальний масив)
   const filteredTasks = tasks.filter(task => {
     if (filter === 'completed') return task.completed;
     if (filter === 'uncompleted') return !task.completed;
-    return true; // для 'all'
+    return true;
   });
 
   return (

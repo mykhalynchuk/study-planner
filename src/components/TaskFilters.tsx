@@ -8,20 +8,24 @@ interface TaskFiltersProps {
 }
 
 export const TaskFilters: React.FC<TaskFiltersProps> = ({ currentFilter, onFilterChange }) => {
+
+    const filterOptions: { value: FilterType; label: string }[] = [
+        { value: 'all', label: 'Всі' },
+        { value: 'uncompleted', label: 'Не виконані' },
+        { value: 'completed', label: 'Виконані' },
+    ];
+
     return (
         <div className="filters">
-            <button
-                className={`filters__btn ${currentFilter === 'all' ? 'filters__btn--active' : ''}`}
-                onClick={() => onFilterChange('all')}
-            >Всі</button>
-            <button
-                className={`filters__btn ${currentFilter === 'uncompleted' ? 'filters__btn--active' : ''}`}
-                onClick={() => onFilterChange('uncompleted')}
-            >Не виконані</button>
-            <button
-                className={`filters__btn ${currentFilter === 'completed' ? 'filters__btn--active' : ''}`}
-                onClick={() => onFilterChange('completed')}
-            >Виконані</button>
+            {filterOptions.map((option) => (
+                <button
+                    key={option.value}
+                    className={`filters__btn ${currentFilter === option.value ? 'filters__btn--active' : ''}`}
+                    onClick={() => onFilterChange(option.value)}
+                >
+                    {option.label}
+                </button>
+            ))}
         </div>
     );
 };
