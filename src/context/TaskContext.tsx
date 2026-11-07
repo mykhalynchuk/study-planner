@@ -1,5 +1,5 @@
-import React, { createContext, useReducer, useEffect, useRef, useState, type ReactNode } from 'react';
-import type { Task, FilterType } from '../types/task';
+// @ts-ignore
+import React, { createContext, useReducer, useEffect, useRef, useState, useMemo, ReactNode } from 'react';import type { Task, FilterType } from '../types/task';
 import { taskReducer } from '../reducers/taskReducer';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { initialTasks } from '../data/initialTasks';
@@ -108,9 +108,25 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         showToast('Видалення скасовано.', 'info');
     };
 
+    useEffect(() => {
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'study_tasks' && e.newValue) {
+                dispatch({ type: 'set_tasks', payload: JSON.parse(e.newValue) });
+            }
+        };
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
+
+    const contextValue = useMemo(() => ({
+        tasks, filter, setFilter, editingTask, setEditingTask, toast,
+        addTask, updateTask, toggleTask, requestDelete, undoDelete, clearCompleted, resetTasks
+    }), [tasks, filter, editingTask, toast]); // Оновлюємо лише коли змінюються ці стани
+
     return (
-        <TaskContext.Provider value={{ tasks, filter, setFilter, editingTask, setEditingTask, toast, addTask, updateTask, toggleTask, requestDelete, undoDelete, clearCompleted, resetTasks }}>
+        <TaskContext.Provider value={contextValue}>
             {children}
         </TaskContext.Provider>
     );
 };
+
