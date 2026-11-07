@@ -219,3 +219,47 @@ body {
     &--delete { background: $danger-color; }
   }
 }
+.task-form__actions {
+  display: flex; gap: 1rem;
+}
+.task-form__button--cancel {
+  background-color: $text-muted;
+}
+.task-item__btn--edit {
+  background: #f59e0b;
+}
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem;
+  border-radius: 8px; color: white; font-weight: bold;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideIn 0.3s ease-out; z-index: 1000;
+  &--success { background: $success-color; }
+  &--warning { background: #f59e0b; }
+  &--error { background: $danger-color; }
+  &--info { background: $primary-color; }
+}
+@keyframes slideIn {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Pending Delete */
+.task-item--pending {
+  background: #374151; color: white; align-items: center;
+}
+.task-item__pending-content {
+  flex: 1; display: flex; flex-direction: column; gap: 0.5rem;
+}
+.progress-bar {
+  width: 100%; height: 4px; background: rgba(255,255,255,0.2);
+  border-radius: 2px; overflow: hidden;
+  &__fill {
+    height: 100%; background: $danger-color; width: 100%;
+    animation: shrink 5s linear forwards;
+  }
+}
+@keyframes shrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
