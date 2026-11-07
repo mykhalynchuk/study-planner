@@ -3,19 +3,7 @@ import type { Task } from '../types/task';
 import { useTaskContext } from '../hooks/useTaskContext';
 
 export const TaskItem: React.FC<{ task: Task }> = ({ task }) => {
-    const { toggleTask, requestDelete, undoDelete, setEditingTask } = useTaskContext();
-
-    if (task.pendingDelete) {
-        return (
-            <li className="task-item task-item--pending">
-                <div className="task-item__pending-content">
-                    <span>Завдання буде видалено</span>
-                    <div className="progress-bar"><div className="progress-bar__fill"></div></div>
-                </div>
-                <button className="task-item__btn task-item__btn--undo" style={{ background: '#ef4444', color: 'white', fontWeight: 'bold' }} onClick={() => undoDelete(task.id)}>UNDO</button>
-            </li>
-        );
-    }
+    const { toggleTask, requestDelete, setEditingTask } = useTaskContext();
 
     return (
         <li className={`task-item ${task.completed ? 'task-item--completed' : ''}`}>

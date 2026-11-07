@@ -229,83 +229,67 @@ body {
   background: #f59e0b;
 }
 
-/* Toast */
+/* Toast (Side Notification) */
 .toast {
-  position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem;
-  border-radius: 8px; color: white; font-weight: bold;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideIn 0.3s ease-out; z-index: 1000;
-  &--success { background: $success-color; }
-  &--warning { background: #f59e0b; }
-  &--error { background: $danger-color; }
-  &--info { background: $primary-color; }
-}
-@keyframes slideIn {
-  from { transform: translateY(100%); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  animation: slideIn 0.3s ease-out;
+  z-index: 1000;
 
-/* Pending Delete State */
-.task-item--pending {
-  background-color: #2d3748; /* Темний колір фону */
-  color: #f7fafc;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+  gap: 1rem;
+  overflow: hidden; /* Щоб смужка не вилазила за межі радіусу */
 
-.task-item__pending-content {
-  flex: 1;
-  margin-right: 2rem;
-}
+  &--success { background: #10b981; }
+  &--warning { background: #f97316; } /* Красивий оранжевий колір */
+  &--error { background: #ef4444; }
+  &--info { background: #3b82f6; }
 
-.task-item__pending-title {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
+  &__btn {
+    background: white;
+    color: #f97316;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
 
-.task-item__pending-subtitle {
-  margin: 0 0 1rem 0;
-  font-size: 0.9rem;
-  color: #a0aec0;
-}
+    &:hover {
+      background: #fff7ed;
+    }
+  }
 
-/* Смужка прогресу */
-.task-item__progress {
-  width: 100%;
-  height: 6px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-  overflow: hidden;
-
-  &-fill {
-    height: 100%;
-    background-color: #ef4444; /* Червоний колір, як на кнопці */
+  &__progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
     width: 100%;
-    animation: shrink 5s linear forwards; /* Рівно 5 секунд */
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+
+    &-fill {
+      height: 100%;
+      background: white;
+      width: 100%;
+      animation: shrinkToast 5s linear forwards;
+    }
   }
 }
 
-@keyframes shrink {
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes shrinkToast {
   from { width: 100%; }
   to { width: 0%; }
-}
-
-/* Кнопка UNDO у темному блоці */
-.task-item__btn--undo-action {
-  background-color: #fff;
-  color: #ef4444;
-  font-weight: bold;
-  padding: 0.5rem 1.5rem;
-  border: 2px solid transparent;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background-color: #f3f4f6;
-  }
 }
