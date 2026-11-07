@@ -1,13 +1,9 @@
 import React from 'react';
+import type { FilterType } from '../types/task';
+import { useTaskContext } from '../hooks/useTaskContext';
 
-export type FilterType = 'all' | 'completed' | 'uncompleted';
-
-interface TaskFiltersProps {
-    currentFilter: FilterType;
-    onFilterChange: (filter: FilterType) => void;
-}
-
-export const TaskFilters: React.FC<TaskFiltersProps> = ({ currentFilter, onFilterChange }) => {
+export const TaskFilters: React.FC = () => {
+    const { filter: currentFilter, setFilter: onFilterChange } = useTaskContext();
 
     const filterOptions: { value: FilterType; label: string }[] = [
         { value: 'all', label: 'Всі' },

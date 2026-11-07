@@ -1,13 +1,11 @@
 import React from 'react';
-import type {Task} from '../types/task';
+import { useTaskContext } from '../hooks/useTaskContext';
 
-interface TaskStatsProps {
-    tasks: Task[];
-}
+export const TaskStats: React.FC = () => {
+    const { tasks } = useTaskContext();
 
-export const TaskStats: React.FC<TaskStatsProps> = ({ tasks }) => {
-    const total = tasks.length;
-    const completed = tasks.filter((task) => task.completed).length;
+    const total = tasks.filter(t => !t.pendingDelete).length;
+    const completed = tasks.filter(t => t.completed && !t.pendingDelete).length;
     const uncompleted = total - completed;
 
     return (
