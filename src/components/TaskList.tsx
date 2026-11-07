@@ -5,9 +5,7 @@ import { useTaskContext } from '../hooks/useTaskContext';
 export const TaskList: React.FC = () => {
     const { tasks, filter } = useTaskContext();
 
-    const activeTasks = tasks.filter(task => !task.pendingDelete);
-
-    const filteredTasks = activeTasks.filter(task => {
+    const filteredTasks = tasks.filter(task => {
         if (filter === 'completed') return task.completed;
         if (filter === 'uncompleted') return !task.completed;
         return true;
