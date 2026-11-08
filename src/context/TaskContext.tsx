@@ -1,5 +1,5 @@
-// @ts-ignore
-import React, { createContext, useReducer, useEffect, useRef, useState, useMemo, ReactNode } from 'react';import type { Task, FilterType } from '../types/task';
+import React, { createContext, useReducer, useEffect, useRef, useState, useMemo, type ReactNode } from 'react';
+import type { Task, FilterType } from '../types/task';
 import { taskReducer } from '../reducers/taskReducer';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { initialTasks } from '../data/initialTasks';
@@ -23,8 +23,21 @@ interface TaskContextProps {
 
 export const TaskContext = createContext<TaskContextProps | null>(null);
 
+const initTasks = (): Task[] => {
+    try {
+        const saved = localStorage.getItem('study_tasks');
+        if (saved !== null) {
+            return JSON.parse(saved);
+        }
+        return initialTasks;
+    } catch (e) {
+        return initialTasks;
+    }
+};
+
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [tasks, dispatch] = useReducer(taskReducer, []);
+    const [tasks, dispatch] = useReducer(taskReducer, [], initTasks);
+
     const [filter, setFilter] = useLocalStorage<FilterType>('task_filter', 'all');
     const [editingTask, setEditingTask] = useState<Task | null>(null);
     const [toast, setToast] = useState<ToastState>({ message: '', type: 'info', visible: false });
@@ -36,12 +49,6 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // @ts-ignore
     const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    useEffect(() => {
-        try {
-            const saved = localStorage.getItem('study_tasks');
-            dispatch({ type: 'set_tasks', payload: saved ? JSON.parse(saved) : initialTasks });
-        } catch (e) { dispatch({ type: 'set_tasks', payload: initialTasks }); }
-    }, []);
 
     useEffect(() => {
         localStorage.setItem('study_tasks', JSON.stringify(tasks));
@@ -73,13 +80,13 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const clearCompleted = () => dispatch({ type: 'clearCompleted' });
 
     const resetTasks = () => {
-        dispatch({ type: 'reset' });
+        dispatch({ type: 'set_tasks', payload: initialTasks });
         showToast('Дані скинуто до початкових', 'success');
     };
 
     const requestDelete = (id: number) => {
         dispatch({ type: 'requestDelete', payload: id });
-        showToast('Завдання буде видалено...', 'warning', id, 5); // Передаємо 5 секунд
+        showToast('Завдання буде видалено...', 'warning', id, 5);
 
         let timeRemaining = 5;
         countdownIntervals.current[id] = setInterval(() => {
@@ -121,7 +128,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const contextValue = useMemo(() => ({
         tasks, filter, setFilter, editingTask, setEditingTask, toast,
         addTask, updateTask, toggleTask, requestDelete, undoDelete, clearCompleted, resetTasks
-    }), [tasks, filter, editingTask, toast]); // Оновлюємо лише коли змінюються ці стани
+    }), [tasks, filter, editingTask, toast]);
 
     return (
         <TaskContext.Provider value={contextValue}>
@@ -129,4 +136,5 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         </TaskContext.Provider>
     );
 };
+
 
