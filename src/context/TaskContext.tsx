@@ -61,7 +61,7 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         setToast({ message, type, visible: true, undoId, timeLeft: initialTimeLeft });
 
-        if (undoId === undefined) {
+        if (!undoId) {
             toastTimeoutRef.current = setTimeout(() => {
                 setToast(prev => ({ ...prev, visible: false }));
             }, 4000);
