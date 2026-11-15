@@ -30,7 +30,7 @@ export const taskRepository = {
         const response = await apiClient.post<ApiTodo>('/todos/add', {
             todo: task.title,
             completed: task.completed,
-            userId: 1, // DummyJSON вимагає userId
+            userId: 1,
         });
 
         return { ...task, ...mapToTask(response.data) };
