@@ -31,7 +31,7 @@ export const TasksPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-    // Читаємо фільтри напряму з URL (без дублювання у useState)
+
     const statusParam = searchParams.get('status') as FilterType | null;
     const priorityParam = searchParams.get('priority') as PriorityFilter | null;
 
