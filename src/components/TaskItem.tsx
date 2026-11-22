@@ -1,4 +1,5 @@
 import React from 'react';
+import './TaskItem.scss';
 import { Link, useLocation, useNavigate } from 'react-router';
 import type { Task } from '../types/task';
 import { useTaskContext } from '../hooks/useTaskContext';

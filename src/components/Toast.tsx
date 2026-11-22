@@ -1,4 +1,5 @@
 import React from 'react';
+import './Toast.scss';
 import { useTaskContext } from '../hooks/useTaskContext';
 
 export const Toast: React.FC = () => {

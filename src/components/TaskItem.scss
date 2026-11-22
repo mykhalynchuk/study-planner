@@ -1,0 +1,129 @@
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    border-color: #bfdbfe;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  }
+
+  &--completed {
+    background-color: #f9fafb;
+
+    .task-item__title {
+      text-decoration: line-through;
+      color: #9ca3af;
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 220px;
+  }
+
+  &__title-link {
+    text-decoration: none;
+    color: inherit;
+
+    &:hover .task-item__title {
+      color: #2563eb;
+    }
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #111827;
+    transition: color 0.2s;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  &__tag {
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background-color: #f3f4f6;
+    color: #4b5563;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  &__priority {
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: capitalize;
+
+    &--low {
+      background-color: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    &--medium {
+      background-color: #fef3c7;
+      color: #b45309;
+    }
+
+    &--high {
+      background-color: #fee2e2;
+      color: #b91c1c;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.45rem 0.85rem;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+
+    &--undo {
+      background-color: #f3f4f6;
+      color: #374151;
+
+      &:hover {
+        background-color: #e5e7eb;
+      }
+    }
+
+    &--done {
+      background-color: #dcfce7;
+      color: #166534;
+
+      &:hover {
+        background-color: #bbf7d0;
+      }
+    }
+  }
+}
