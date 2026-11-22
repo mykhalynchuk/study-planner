@@ -9,6 +9,8 @@ export interface Task {
     priority: Priority;
     category: string;
     pendingDelete?: boolean;
+    createdBy: string;
+    createdAt: string;
 }
 
 export type TaskAction =
