@@ -1,41 +1,57 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Link, useLocation, useNavigate } from 'react-router';
 import type { Task } from '../types/task';
 import { useTaskContext } from '../hooks/useTaskContext';
-import { TaskDetailsModal } from './TaskDetailsModal';
+import { useAuth } from '../hooks/useAuth';
 
 export const TaskItem: React.FC<{ task: Task }> = ({ task }) => {
-    const { toggleTask, deleteTask, setEditingTask } = useTaskContext();
-    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const { toggleTask } = useTaskContext();
+    const { isAuthenticated } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
 
-    const handleDelete = () => {
-        if (window.confirm('Ви впевнені, що хочете видалити це завдання?')) {
-            deleteTask(task.id);
+    const handleToggle = () => {
+        if (!isAuthenticated) {
+            const currentUrl = encodeURIComponent(location.pathname + location.search);
+            navigate(`/login?redirectTo=${currentUrl}`);
+            return;
         }
+        void toggleTask(task.id);
     };
 
     return (
-        <>
-            <li className={`task-item ${task.completed ? 'task-item--completed' : ''}`}>
-                <div className="task-item__content">
+        <li className={`task-item ${task.completed ? 'task-item--completed' : ''}`}>
+            <div className="task-item__content">
+                <Link to={`/tasks/${task.id}`} className="task-item__title-link">
                     <h3 className="task-item__title">{task.title}</h3>
-                    <div className="task-item__meta">
-                        <span className="task-item__tag">{task.category}</span>
-                        <span className={`task-item__priority task-item__priority--${task.priority}`}>{task.priority}</span>
-                    </div>
+                </Link>
+                <div className="task-item__meta">
+                    <span className="task-item__tag">{task.category}</span>
+                    <span
+                        className={`task-item__priority task-item__priority--${task.priority}`}
+                    >
+                        {task.priority}
+                    </span>
                 </div>
-                <div className="task-item__actions">
-                    <button className="task-item__btn task-item__btn--undo" onClick={() => setIsDetailsOpen(true)}>Деталі</button>
-                    <button className="task-item__btn task-item__btn--edit" onClick={() => setEditingTask(task)}>Редаг.</button>
-                    <button className={`task-item__btn ${task.completed ? 'task-item__btn--undo' : 'task-item__btn--done'}`} onClick={() => toggleTask(task.id)}>
-                        {task.completed ? 'Скасувати' : 'Виконати'}
-                    </button>
-                    <button className="task-item__btn task-item__btn--delete" onClick={handleDelete}>Видалити</button>
-                </div>
-            </li>
+            </div>
 
-            {isDetailsOpen && (
-                <TaskDetailsModal taskId={task.id} onClose={() => setIsDetailsOpen(false)} />
-            )}
-        </>
+            <div className="task-item__actions">
+                <Link
+                    to={`/tasks/${task.id}`}
+                    className="task-item__btn task-item__btn--undo"
+                >
+                    Деталі
+                </Link>
+                <button
+                    type="button"
+                    className={`task-item__btn ${
+                        task.completed ? 'task-item__btn--undo' : 'task-item__btn--done'
+                    }`}
+                    onClick={handleToggle}
+                >
+                    {task.completed ? 'Скасувати' : 'Виконати'}
+                </button>
+            </div>
+        </li>
     );
 };

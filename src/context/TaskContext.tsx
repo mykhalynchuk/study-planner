@@ -1,57 +1,80 @@
-import React, { createContext, useEffect, useState, useRef, useMemo, type ReactNode } from 'react';
-import type { Task, FilterType } from '../types/task';
+import React, {
+    createContext,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type ReactNode,
+} from 'react';
+import axios from 'axios';
+import type { Task } from '../types/task';
+import type { TaskFormData } from '../schemas/taskSchema';
 import { taskRepository } from '../repositories/taskRepository';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useAuth } from '../hooks/useAuth';
+import { tokenStorage } from '../utils/tokenStorage';
 
-type RequestStatus = 'idle' | 'loading' | 'success' | 'error';
+export type RequestStatus = 'idle' | 'loading' | 'success' | 'error';
 
-interface ToastState {
-    message: string; type: 'success' | 'error' | 'warning' | 'info'; visible: boolean;
+export interface ToastState {
+    message: string;
+    type: 'success' | 'error' | 'warning' | 'info';
+    visible: boolean;
 }
 
 interface TaskContextProps {
     tasks: Task[];
     status: RequestStatus;
     error: string | null;
-    filter: FilterType;
-    setFilter: (filter: FilterType) => void;
-    editingTask: Task | null;
-    setEditingTask: (task: Task | null) => void;
     toast: ToastState;
     totalTasks: number;
     currentPage: number;
     setCurrentPage: (page: number) => void;
-
+    showToast: (message: string, type?: ToastState['type']) => void;
     fetchTasks: () => void;
-    addTask: (task: Omit<Task, 'id' | 'completed' | 'pendingDelete'>) => Promise<void>;
-    updateTask: (task: Task) => Promise<void>;
+    addTask: (data: TaskFormData) => Promise<Task>;
+    updateTask: (id: number, data: TaskFormData) => Promise<Task>;
     toggleTask: (id: number) => Promise<void>;
     deleteTask: (id: number) => Promise<void>;
 }
 
 export const TaskContext = createContext<TaskContextProps | null>(null);
 
-const LIMIT = 10;
+export const TASKS_PER_PAGE = 10;
 
 export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const { isAuthenticated, user } = useAuth();
+
     const [tasks, setTasks] = useState<Task[]>([]);
     const [status, setStatus] = useState<RequestStatus>('idle');
     const [error, setError] = useState<string | null>(null);
     const [totalTasks, setTotalTasks] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
+    const [reloadTrigger, setReloadTrigger] = useState(0);
+    const [toast, setToast] = useState<ToastState>({
+        message: '',
+        type: 'info',
+        visible: false,
+    });
 
-    const [filter, setFilter] = useLocalStorage<FilterType>('task_filter', 'all');
-    const [editingTask, setEditingTask] = useState<Task | null>(null);
-    const [toast, setToast] = useState<ToastState>({ message: '', type: 'info', visible: false });
+    const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // @ts-ignore
-    const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const showToast = useCallback(
+        (message: string, type: ToastState['type'] = 'info') => {
+            if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+            setToast({ message, type, visible: true });
+            toastTimeoutRef.current = setTimeout(() => {
+                setToast((prev) => ({ ...prev, visible: false }));
+            }, 3500);
+        },
+        []
+    );
 
-    const showToast = (message: string, type: ToastState['type'] = 'info') => {
-        if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
-        setToast({ message, type, visible: true });
-        toastTimeoutRef.current = setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 4000);
-    };
+    useEffect(() => {
+        return () => {
+            if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+        };
+    }, []);
 
     useEffect(() => {
         const abortController = new AbortController();
@@ -60,16 +83,20 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setStatus('loading');
             setError(null);
             try {
-                const skip = (currentPage - 1) * LIMIT;
-                const data = await taskRepository.getAll(LIMIT, skip, abortController.signal);
+                const skip = (currentPage - 1) * TASKS_PER_PAGE;
+                const data = await taskRepository.getAll(
+                    TASKS_PER_PAGE,
+                    skip,
+                    abortController.signal
+                );
                 setTasks(data.tasks);
                 setTotalTasks(data.total);
                 setStatus('success');
-            } catch (err: any) {
-                if (err.name === 'CanceledError' || err.message === 'canceled') return;
+            } catch (err) {
+                if (axios.isCancel(err)) return;
 
                 setStatus('error');
-                setError('Не вдалося завантажити завдання. Перевірте з\'єднання.');
+                setError("Не вдалося завантажити завдання. Перевірте з'єднання.");
                 showToast('Помилка завантаження API', 'error');
             }
         };
@@ -77,61 +104,126 @@ export const TaskProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         loadTasks();
 
         return () => abortController.abort();
-    }, [currentPage]);
+    }, [currentPage, reloadTrigger, showToast]);
 
-    const fetchTasks = () => setCurrentPage(prev => prev);
+    const fetchTasks = useCallback(() => {
+        setReloadTrigger((prev) => prev + 1);
+    }, []);
 
-    const addTask = async (task: Omit<Task, 'id' | 'completed' | 'pendingDelete'>) => {
-        try {
-            // @ts-ignore
-            const newTask = await taskRepository.create(task);
-            setTasks(prev => [newTask, ...prev]);
-            showToast('Завдання створено на сервері!', 'success');
-        } catch (err) {
-            showToast('Помилка створення завдання', 'error');
+    const ensureAuthorized = useCallback(() => {
+        if (!isAuthenticated || !tokenStorage.getToken()) {
+            showToast('Потрібна авторизація для цієї дії', 'warning');
+            throw new Error('Необхідно увійти в систему для виконання цієї дії.');
         }
-    };
+    }, [isAuthenticated, showToast]);
 
-    const updateTask = async (task: Task) => {
-        try {
-            const updated = await taskRepository.update(task.id, task);
-            setTasks(prev => prev.map(t => t.id === task.id ? updated : t));
-            setEditingTask(null);
+    const addTask = useCallback(
+        async (data: TaskFormData): Promise<Task> => {
+            ensureAuthorized();
+            const createdTask = await taskRepository.create({
+                ...data,
+                createdBy: user?.username ?? 'Authorized user',
+            });
+            setTasks((prev) => [createdTask, ...prev]);
+            setTotalTasks((prev) => prev + 1);
+            showToast('Завдання успішно створено!', 'success');
+            return createdTask;
+        },
+        [ensureAuthorized, user, showToast]
+    );
+
+    const updateTask = useCallback(
+        async (id: number, data: TaskFormData): Promise<Task> => {
+            ensureAuthorized();
+            const existing = tasks.find((t) => t.id === id);
+            const updatedFromApi = await taskRepository.update(id, {
+                ...data,
+                completed: existing?.completed ?? false,
+            });
+
+            const mergedTask: Task = {
+                ...updatedFromApi,
+                title: data.title,
+                description: data.description,
+                category: data.category,
+                priority: data.priority,
+                createdBy: existing?.createdBy ?? updatedFromApi.createdBy,
+                createdAt: existing?.createdAt ?? updatedFromApi.createdAt,
+            };
+
+            setTasks((prev) => prev.map((t) => (t.id === id ? mergedTask : t)));
             showToast('Зміни збережено!', 'success');
-        } catch (err) {
-            showToast('Помилка оновлення', 'error');
-        }
-    };
+            return mergedTask;
+        },
+        [ensureAuthorized, tasks, showToast]
+    );
 
-    const toggleTask = async (id: number) => {
-        const taskToToggle = tasks.find(t => t.id === id);
-        if (!taskToToggle) return;
+    const toggleTask = useCallback(
+        async (id: number) => {
+            ensureAuthorized();
+            const taskToToggle = tasks.find((t) => t.id === id);
+            if (!taskToToggle) return;
 
-        setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+            setTasks((prev) =>
+                prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
+            );
 
-        try {
-            await taskRepository.update(id, { completed: !taskToToggle.completed });
-        } catch (err) {
-            setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: taskToToggle.completed } : t));
-            showToast('Не вдалося змінити статус', 'error');
-        }
-    };
+            try {
+                await taskRepository.update(id, { completed: !taskToToggle.completed });
+            } catch {
+                setTasks((prev) =>
+                    prev.map((t) =>
+                        t.id === id ? { ...t, completed: taskToToggle.completed } : t
+                    )
+                );
+                showToast('Не вдалося оновити статус завдання', 'error');
+            }
+        },
+        [ensureAuthorized, tasks, showToast]
+    );
 
-    const deleteTask = async (id: number) => {
-        try {
+    const deleteTask = useCallback(
+        async (id: number) => {
+            ensureAuthorized();
             await taskRepository.delete(id);
-            setTasks(prev => prev.filter(t => t.id !== id));
+            setTasks((prev) => prev.filter((t) => t.id !== id));
+            setTotalTasks((prev) => Math.max(0, prev - 1));
             showToast('Завдання видалено', 'info');
-        } catch (err) {
-            showToast('Помилка видалення', 'error');
-        }
-    };
+        },
+        [ensureAuthorized, showToast]
+    );
 
-    const contextValue = useMemo(() => ({
-        tasks, status, error, filter, setFilter, editingTask, setEditingTask, toast,
-        totalTasks, currentPage, setCurrentPage, fetchTasks,
-        addTask, updateTask, toggleTask, deleteTask
-    }), [tasks, status, error, filter, editingTask, toast, totalTasks, currentPage]);
+    const contextValue = useMemo<TaskContextProps>(
+        () => ({
+            tasks,
+            status,
+            error,
+            toast,
+            totalTasks,
+            currentPage,
+            setCurrentPage,
+            showToast,
+            fetchTasks,
+            addTask,
+            updateTask,
+            toggleTask,
+            deleteTask,
+        }),
+        [
+            tasks,
+            status,
+            error,
+            toast,
+            totalTasks,
+            currentPage,
+            showToast,
+            fetchTasks,
+            addTask,
+            updateTask,
+            toggleTask,
+            deleteTask,
+        ]
+    );
 
     return <TaskContext.Provider value={contextValue}>{children}</TaskContext.Provider>;
 };
